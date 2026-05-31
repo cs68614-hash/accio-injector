@@ -143,7 +143,8 @@ async function patchAsar(asarPath, mutate) {
       cpSync(appSource, src, { recursive: true });
       restoreMissingFilesFromAsar(asarPath, src);
     } else {
-      asar.extractAll(asarPath, src);
+      mkdirSync(src, { recursive: true });
+      restoreMissingFilesFromAsar(asarPath, src);
     }
     await mutate(src);
     await asar.createPackageWithOptions(src, out, {
