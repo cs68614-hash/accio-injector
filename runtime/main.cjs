@@ -87,12 +87,18 @@ function normalizeProbeConfig(config) {
 function normalizeLlmProxyConfig(config) {
   const proxy = config && typeof config === "object" ? config : {};
   const apiKey = proxy.apiKey || (proxy.apiKeyEnv ? process.env[proxy.apiKeyEnv] : undefined) || process.env.ACCIO_INJECTOR_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  const heartbeatMs = Number(
+    proxy.sseHeartbeatMs
+    || process.env.ACCIO_INJECTOR_OPENAI_SSE_HEARTBEAT_MS
+    || 25000,
+  );
   return {
     enabled: !!proxy.enabled,
     baseUrl: String(proxy.baseUrl || process.env.ACCIO_INJECTOR_OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, ""),
     apiKey,
     model: proxy.model || process.env.ACCIO_INJECTOR_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-4.1",
     timeoutMs: Number(proxy.timeoutMs || process.env.ACCIO_INJECTOR_OPENAI_TIMEOUT_MS || 120000),
+    sseHeartbeatMs: Number.isFinite(heartbeatMs) ? heartbeatMs : 25000,
     passthroughModel: !!proxy.passthroughModel,
     injectSystemPrompt: proxy.injectSystemPrompt || "",
     exposeReasoning: proxy.exposeReasoning === true || process.env.ACCIO_INJECTOR_EXPOSE_REASONING === "1",
@@ -710,6 +716,7 @@ function openAiStreamToAdkStream(openAiBody) {
   const encoder = new TextEncoder();
   let buffer = "";
   let completed = false;
+  let heartbeatTimer = null;
   const toolCalls = new Map();
   const textState = { emitted: "" };
   const reasoningState = { emitted: "" };
@@ -717,6 +724,13 @@ function openAiStreamToAdkStream(openAiBody) {
   return new ReadableStream({
     async start(controller) {
       try {
+        if (llmProxyConfig.sseHeartbeatMs > 0) {
+          heartbeatTimer = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode(": accio-injector heartbeat\n\n"));
+            } catch {}
+          }, llmProxyConfig.sseHeartbeatMs);
+        }
         for await (const chunk of openAiBody) {
           buffer += decoder.decode(chunk, { stream: true });
           const lines = buffer.split(/\r?\n/);
@@ -763,6 +777,8 @@ function openAiStreamToAdkStream(openAiBody) {
         });
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
+      } finally {
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
       }
     },
   });

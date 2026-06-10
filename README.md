@@ -73,6 +73,7 @@ Edit that file for your model routing:
     "apiKeyEnv": "OPENAI_API_KEY",
     "model": "gpt-4.1",
     "passthroughModel": false,
+    "sseHeartbeatMs": 25000,
     "exposeReasoning": false
   },
   "embeddingProxy": {
@@ -103,6 +104,10 @@ Watch network/proxy logs:
 ```sh
 tail -f "$HOME/Library/Application Support/accio-injector/log/network.log"
 ```
+
+If Accio trips the 90s SSE idle watchdog during long generations, lower
+`llmProxy.sseHeartbeatMs` so the proxy sends periodic heartbeat bytes while
+waiting for the upstream model.
 
 ## What It Patches
 

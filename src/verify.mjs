@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 const userRoot = process.env.ACCIO_INJECTOR_USER_ROOT
   || resolveArg("--user-root")
-  || join(process.env.HOME || "", "Library", "Application Support", "accio-injector-poc");
+  || join(process.env.HOME || "", "Library", "Application Support", "accio-injector");
 
 for (const name of ["loader.log", "main.log"]) {
   const file = join(userRoot, "log", name);

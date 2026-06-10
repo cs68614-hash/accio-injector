@@ -27,7 +27,7 @@ const repoRoot = resolve(projectRoot, "..");
 const sourceApp = resolveArg("--source") ?? "/Applications/Accio.app";
 const targetApp = resolveArg("--target") ?? "/private/tmp/Accio-injected.app";
 const userRoot = resolveArg("--user-root")
-  ?? join(homedir(), "Library", "Application Support", "accio-injector-poc");
+  ?? join(homedir(), "Library", "Application Support", "accio-injector");
 const keepExisting = process.argv.includes("--keep-existing");
 const skipLaunch = process.argv.includes("--skip-launch");
 

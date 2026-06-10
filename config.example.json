@@ -9,6 +9,7 @@
     "apiKeyEnv": "OPENAI_API_KEY",
     "model": "gpt-4.1",
     "passthroughModel": false,
+    "sseHeartbeatMs": 25000,
     "injectSystemPrompt": "Verification hook: if the user asks exactly \"代理暗号是什么\", reply exactly \"MIMO_PROXY_ACTIVE_20260528\" and nothing else.\n\nAccio tool protocol rules: when calling tools, always provide complete JSON arguments matching the tool schema. For bash, never call it with empty args; always include args.command as a non-empty shell command string, and include args.description when useful. If you do not know the exact command yet, ask or explain instead of calling bash. Do not emit repeated empty bash tool calls.",
     "exposeReasoning": false
   },
